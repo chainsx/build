@@ -2,7 +2,7 @@
 BOARD_NAME="100ASK RK3568"
 BOARDFAMILY="rk35xx"
 BOARD_MAINTAINER=""
-BOOTCONFIG="rock-3a-rk3568_defconfig"
+BOOTCONFIG="dshanpi-r1-rk3568_defconfig"
 KERNEL_TARGET="vendor"
 KERNEL_TEST_TARGET="current"
 FULL_DESKTOP="yes"
@@ -15,7 +15,7 @@ BOOTFS_TYPE="fat"
 function post_family_config__dshanpi-r1_use_mainline_uboot() {
 	display_alert "$BOARD" "Mainline U-Boot overrides for $BOARD - $BRANCH" "info"
 	unset BOOTFS_TYPE # fixes armbian-install and unneeded for modern uboot anyway
-	declare -g BOOTCONFIG="rock-3a-rk3568_defconfig"
+	declare -g BOOTCONFIG="dshanpi-r1-rk3568_defconfig"
 	declare -g BOOTDELAY=1
 	declare -g BOOTSOURCE="https://github.com/u-boot/u-boot"
 	declare -g BOOTBRANCH="tag:v2024.10"
