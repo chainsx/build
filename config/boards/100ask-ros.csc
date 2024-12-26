@@ -1,9 +1,9 @@
 # Allwinner Cortex-A53 quad core 2/4GB RAM SoC USB2 USB-C GbE
 BOARD_NAME="100ASK ROSx"
 BOARDFAMILY="sun50iw10-syterkit"
-BOARD_MAINTAINER="chainsx"
+BOARD_MAINTAINER=""
 KERNEL_TARGET="legacy"
-BOOT_FDT_FILE="allwinner/sun50i-r818-mq-core.dtb"
+BOOT_FDT_FILE="allwinner/sun50i-r818-dongshanpai-rosx.dtb"
 SRC_EXTLINUX="yes"
 SRC_CMDLINE="earlycon=uart8250,mmio32,0x05000000 clk_ignore_unused initcall_debug=0 console=ttyAS0,115200 loglevel=8 cma=64M init=/sbin/init"
 BOOTFS_TYPE="fat"
