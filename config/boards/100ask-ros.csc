@@ -12,8 +12,6 @@ SERIALCON="ttyAS0"
 #declare -g SYTERKIT_BOARD_ID="avaota-a1" # This _only_ used for syterkit-allwinner extension
 
 function post_family_tweaks__avaota-a1() {
-	display_alert "Applying boot blobs"
-	cp -v "$SRC/packages/blobs/sunxi/sun50iw10/bl31.bin" "$SDCARD/boot/bl31.bin"
 
 	display_alert "Applying wifi firmware"
 	pushd "$SDCARD/lib/firmware"
