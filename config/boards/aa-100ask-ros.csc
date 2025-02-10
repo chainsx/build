@@ -11,6 +11,8 @@ BOOTSIZE="256"
 SERIALCON="ttyAS0"
 
 function post_family_tweaks__100ask-ros() {
+	display_alert "Applying boot blobs"
+	cp -v "$SRC/packages/blobs/sunxi/sun50iw10/bl31.bin" "$SDCARD/boot/bl31.bin"
 
 	display_alert "Applying wifi firmware"
 	pushd "$SDCARD/lib/firmware"
