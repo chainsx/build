@@ -3,13 +3,16 @@ BOARD_NAME="100ASK DShanPI R1"
 BOARDFAMILY="rk35xx"
 BOARD_MAINTAINER=""
 BOOTCONFIG="dshanpi-r1-rk3568_defconfig"
-KERNEL_TARGET="vendor"
+KERNEL_TARGET="vendor,current"
 KERNEL_TEST_TARGET="vendor"
 FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3568-dshapi-r1.dtb"
 BOOT_SCENARIO="spl-blobs"
 IMAGE_PARTITION_TABLE="gpt"
+
+BOOTFS_TYPE="fat"
+BOOTSIZE="256"
 
 function post_family_config__dshanpi-r1_use_mainline_uboot() {
 	display_alert "$BOARD" "Mainline U-Boot overrides for $BOARD - $BRANCH" "info"
