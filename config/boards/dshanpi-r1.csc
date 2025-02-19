@@ -9,8 +9,6 @@ FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3568-dshapi-r1.dtb"
 BOOT_SCENARIO="spl-blobs"
-BOOTFS_TYPE="fat"
-BOOTSIZE="256"
 IMAGE_PARTITION_TABLE="gpt"
 
 function post_family_config__dshanpi-r1_use_mainline_uboot() {
