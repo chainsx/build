@@ -65,6 +65,13 @@
 			sound-dai = <&rk809>;
 		};
 	};
+
+	rk_headset: rk-headset {
+		compatible = "rockchip_headset";
+		headset_gpio = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&hp_det>;
+	};
 	
 	gmac0_clkin: external-gmac0-clock {
 		compatible = "fixed-clock";
@@ -96,7 +103,7 @@
 		regulator-boot-on;
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		vin-supply = <&vcc5v0_sys>;
+		vin-supply = <&dc_12v>;
 	};
 
 	vcc5v0_sys: regulator-vcc5v0-sys {
@@ -117,7 +124,7 @@
 		regulator-max-microvolt = <3300000>;
 		gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
-		vin-supply = <&vcc5v0_sys>;
+		vin-supply = <&dc_12v>;
 	};
 
 	vcc3v3_pcie: regulator-vcc3v3-pcie {
@@ -592,35 +599,18 @@
 	status = "okay";
 };
 
-&pwm8 {
+&pwm4 {
 	status = "okay";
 };
 
-&pwm9 {
-	status = "disabled";
-};
-
-&pwm10 {
-	status = "disabled";
-};
-
-&pwm14 {
-	status = "disabled";
-};
-
-&spi3 {
-	pinctrl-0 = <&spi3m1_pins>;
-	status = "disabled";
-};
-
-&uart2 {
+&pwm5 {
 	status = "okay";
 };
 
-&uart3 {
+&uart8 {
+	status = "okay";
 	pinctrl-names = "default";
-	pinctrl-0 = <&uart3m1_xfer>;
-	status = "disabled";
+	pinctrl-0 = <&uart8m0_xfer &uart8m0_ctsn>;
 };
 
 &saradc {
@@ -681,6 +671,7 @@
 /* USB OTG/USB Host_1 USB 2.0 Comb */
 &usb2phy0 {
 	status = "okay";
+	extcon = <&fusb0>;
 };
 
 &usb2phy0_host {
@@ -689,7 +680,7 @@
 };
 
 &usb2phy0_otg {
-	phy-supply = <&vcc5v0_otg_en>;
+	phy-supply = <&fusb0>;
 	status = "okay";
 };
 
@@ -707,6 +698,7 @@
 };
 
 &usb2phy1_host {
+	phy-supply = <&vcc5v0_host>;
 	status = "okay";
 };
 
@@ -800,6 +792,12 @@
 	fusb30x {
 		fusb0_int: fusb0-int {
 			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	headphone {
+		hp_det: hp-det {
+			rockchip,pins = <1 RK_PB0 RK_FUNC_GPIO &pcfg_pull_down>;
 		};
 	};
 };
