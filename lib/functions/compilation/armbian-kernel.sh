@@ -153,12 +153,12 @@ function armbian_kernel_config__600_enable_ebpf_and_btf_info() {
 			fi
 		fi
 
-		display_alert "Enabling eBPF and BTF info" "for fully BTF & CO-RE enabled kernel" "info"
-		opts_n+=("CONFIG_DEBUG_INFO_NONE") # Make sure the "none" option is disabled
-		opts_y+=(
-			"CONFIG_BPF_JIT" "CONFIG_BPF_JIT_DEFAULT_ON" "CONFIG_FTRACE_SYSCALLS" "CONFIG_PROBE_EVENTS_BTF_ARGS" "CONFIG_BPF_KPROBE_OVERRIDE" # eBPF == on
-			"CONFIG_DEBUG_INFO" "CONFIG_DEBUG_INFO_DWARF5" "CONFIG_DEBUG_INFO_BTF" "CONFIG_DEBUG_INFO_BTF_MODULES"                            # BTF & CO-RE == off
-		)
+		#display_alert "Enabling eBPF and BTF info" "for fully BTF & CO-RE enabled kernel" "info"
+		#opts_n+=("CONFIG_DEBUG_INFO_NONE") # Make sure the "none" option is disabled
+		#opts_y+=(
+		#	"CONFIG_BPF_JIT" "CONFIG_BPF_JIT_DEFAULT_ON" "CONFIG_FTRACE_SYSCALLS" "CONFIG_PROBE_EVENTS_BTF_ARGS" "CONFIG_BPF_KPROBE_OVERRIDE" # eBPF == on
+		#	"CONFIG_DEBUG_INFO" "CONFIG_DEBUG_INFO_DWARF5" "CONFIG_DEBUG_INFO_BTF" "CONFIG_DEBUG_INFO_BTF_MODULES"                            # BTF & CO-RE == off
+		#)
 	fi
 	armbian_kernel_config_apply_opts_from_arrays
 

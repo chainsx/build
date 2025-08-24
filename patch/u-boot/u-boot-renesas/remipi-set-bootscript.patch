@@ -1,0 +1,46 @@
+diff -Nuar -r --no-dereference a/include/configs/myc-rzg2l.h b/include/configs/myc-rzg2l.h
+--- a/include/configs/myc-rzg2l.h	2025-08-24 19:11:20.807002838 +0800
++++ b/include/configs/myc-rzg2l.h	2025-08-24 02:08:32.574617000 +0800
+@@ -60,28 +60,23 @@
+ /* ENV setting */
+ 
+ #define CONFIG_EXTRA_ENV_SETTINGS \
+-	"bootm_size=0x10000000 \0" \
+-	"prodsdbootargs=setenv bootargs rw rootwait earlycon root=/dev/mmcblk1p2 \0" \
+-	"prodemmcbootargs=setenv bootargs rw rootwait earlycon loglevel=3 root=/dev/mmcblk0p2 \0" \
+-	"bootimage=unzip 0x4A080000 0x48080000; booti 0x48080000 - 0x48000000 \0" \
+-	"loadaddr=0x48080000 \0" \
+-	"fdtaddr=0x48000000 \0" \
+-	 "bootdelay=1 \0" \
+-	"script=boot.scr\0" \
+-	"image=Image\0" \
++	"scriptaddr=0x48080000\0" \
++	"pxefile_addr_r=0x48082000\0" \
++	"fdt_addr_r=0x48000000\0" \
++	"kernel_addr_r=0x4A080000\0" \
++	"ramdisk_addr_r=0x48080000\0" \
++	"boot_conf_file=boot/boot.scr\0" \
++	"mmcbootpart=1\0" \
++	"default_mmcdev=1\0" \
++	"mmc_select=if test -e mmc ${default_mmcdev}:${mmcbootpart} ${boot_conf_file}; then mmcdev=1; else mmcdev=0; fi;\0" \
++	"load_conf=load mmc ${mmcdev}:${mmcbootpart} ${scriptaddr} ${boot_conf_file};source ${scriptaddr}\0" \
++	"prodemmcbootargs=setenv bootargs rw rootwait earlycon loglevel=8 root=/dev/mmcblk0p1 \0" \
++	"bootimage=sysboot mmc ${mmcdev}:${mmcbootpart} any ${scriptaddr} ${boot_conf_file} \0" \
+ 	"board_name=" CONFIG_SYS_BOARDNAME "\0" \
+ 	"sdhi_sw=if test $board_name = MYS-RZG2L ; then switch_sdhi1 wifi; fi \0" \
+-	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
+-	"mmcload=fatload  mmc 0:1 ${loadaddr} ${image};fatload  mmc 0:1 ${fdtaddr} ${fdt_file};run prodemmcbootargs \0" \
+-	"emmcload=ext4load mmc 0:1 0x4A080000 boot/Image.gz;ext4load mmc 0:1 0x48000000 boot/r9a07g044l-smarc-rzg2l.dtb;run prodemmcbootargs \0" \
+-        "bootcmd_check=mmc dev 1;" \
+-		"if fatload mmc 1  ${loadaddr}  ${script}; then " \
+-			"source ${loadaddr};" \
+-		"else " \
+-			"mmc dev 0; run mmcload;" \
+-		"fi;\0"
++	"\0"
+ 
+-#define CONFIG_BOOTCOMMAND	"run sdhi_sw; run bootcmd_check;run bootimage"
++#define CONFIG_BOOTCOMMAND	"run sdhi_sw; run mmc_select; run prodemmcbootargs;run load_conf; run bootimage"
+ 
+ /* For board */
+ /* Ethernet RAVB */
