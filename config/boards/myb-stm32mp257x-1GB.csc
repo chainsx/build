@@ -1,0 +1,10 @@
+# STM32MP2 Cortex-A35 double core 1/2GB RAM SoC USB3 USB-C 3x GbE LED
+BOARD_NAME="MYB LD25X"
+BOARDFAMILY="stm32mp2"
+BOARD_MAINTAINER=""
+KERNEL_TARGET="legacy,vendor"
+BOOTCONFIG="myd_ld25x_1G_defconfig"
+BOOT_FDT_FILE="st/myb-stm32mp257x-1GB.dtb"
+SRC_EXTLINUX="yes"
+SRC_CMDLINE="earlyprintk earlycon nosplash loglevel=8 console=ttySTM0,115200 init=/sbin/init"
+SERIALCON="ttySTM0"
