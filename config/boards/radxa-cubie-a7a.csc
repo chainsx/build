@@ -1,0 +1,14 @@
+# Allwinner octa core SoC USB3 USB-C GbE
+BOARD_NAME="Radxa Cubie A7A"
+BOARDFAMILY="sun60iw2"
+BOARD_MAINTAINER=""
+KERNEL_TARGET="legacy,vendor"
+BOOT_FDT_FILE="allwinner/sun60i-a733-cubie-a7a.dtb"
+SRC_EXTLINUX="yes"
+SRC_CMDLINE="console=ttyAS0,115200n8 rootwait clk_ignore_unused mac_addr=\${mac} quiet loglevel=8 earlycon console=tty1 coherent_pool=2M irqchip.gicv3_pseudo_nmi=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 kasan=off init=/sbin/init"
+
+enable_extension "radxa-bxm-img-gpu"
+enable_extension "radxa-sunxi-uboot"
+#enable_extension "ufs"
+enable_extension "radxa-aic8800"
+AIC8800_TYPE="usb"
