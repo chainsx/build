@@ -109,6 +109,12 @@ function install_distribution_agnostic() {
 	# display welcome message at first root login which is ready by /usr/sbin/armbian/armbian-firstlogin
 	touch "${SDCARD}"/root/.not_logged_in_yet
 
+	# use user provided firstboot config
+	if [[ -f "${USERPATCHES_PATH}/firstboot.conf" ]]; then
+		display_alert "Use user provided firstboot config" "" "info"
+		cp "${USERPATCHES_PATH}/firstboot.conf" "${SDCARD}"/root/.not_logged_in_yet
+	fi
+
 	if [[ ${DESKTOP_AUTOLOGIN} == yes ]]; then
 		# set desktop autologin
 		touch "${SDCARD}"/root/.desktop_autologin
@@ -296,6 +302,7 @@ function install_distribution_agnostic() {
 
 		if [[ "${KERNEL_HAS_WORKING_HEADERS:-"no"}" == "yes" ]]; then
 			if [[ $INSTALL_HEADERS == yes ]]; then # @TODO remove? might be a good idea to always install headers.
+				chroot_sdcard_apt_get_install "pahole"
 				install_artifact_deb_chroot "linux-headers"
 			fi
 		fi
@@ -486,11 +493,13 @@ function install_distribution_agnostic() {
 		echo "nameserver $NAMESERVER" > "${SDCARD}"/etc/resolvconf/resolv.conf.d/head
 	fi
 
-	# permit root login via SSH for the first boot
-	sed -i 's/#\?PermitRootLogin .*/PermitRootLogin yes/' "${SDCARD}"/etc/ssh/sshd_config
-
-	# enable PubkeyAuthentication
-	sed -i 's/#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' "${SDCARD}"/etc/ssh/sshd_config
+	# don't fail if OpenSSH is missing, e.g. if dropbear is installed instead
+	if [[ -f "${SDCARD}"/etc/ssh/sshd_config ]]; then
+		# permit root login via SSH for the first boot
+		sed -i 's/#\?PermitRootLogin .*/PermitRootLogin yes/' "${SDCARD}"/etc/ssh/sshd_config
+		# enable PubkeyAuthentication
+		sed -i 's/#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' "${SDCARD}"/etc/ssh/sshd_config
+	fi
 
 	# avahi daemon defaults if exists
 	[[ -f "${SDCARD}"/usr/share/doc/avahi-daemon/examples/sftp-ssh.service ]] &&

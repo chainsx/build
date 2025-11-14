@@ -1,11 +1,11 @@
-# Rockchip RK3588 octa core whatever fixme
+# Rockchip RK3588 octa core 4/8/16GB RAM SoC SPI NVMe 2x USB2 2x USB3 HDMI HDMI-in
 BOARD_NAME="Orange Pi 5 Ultra"
 BOARDFAMILY="rockchip-rk3588"
 BOARD_MAINTAINER=""
 BOOTCONFIG="orangepi-5-ultra-rk3588_defconfig" # vendor name, not standard, see hook below, set BOOT_SOC below to compensate
 BOOT_SOC="rk3588"
-KERNEL_TARGET="current,edge"
-KERNEL_TEST_TARGET="current,edge"
+KERNEL_TARGET="vendor,current,edge"
+KERNEL_TEST_TARGET="vendor,current,edge"
 FULL_DESKTOP="yes"
 BOOT_LOGO="desktop"
 BOOT_FDT_FILE="rockchip/rk3588-orangepi-5-ultra.dtb"
@@ -13,24 +13,15 @@ BOOT_SCENARIO="spl-blobs"
 BOOT_SUPPORT_SPI="yes"
 BOOT_SPI_RKSPI_LOADER="yes"
 IMAGE_PARTITION_TABLE="gpt"
-#enable_extension "bcmdhd"
+enable_extension "bcmdhd"
 BCMDHD_TYPE="sdio"
-
-# for testing purpose only. needs adaption to mainline once this makes it into 6.15 or .16
-function post_family_config_branch_edge__orangepi5-ultra_use_custom_source() {
-	KERNEL_MAJOR_MINOR="6.14"   # Major and minor versions of this kernel.
-	KERNELSOURCE='https://github.com/jimmyhon/linux.git'
-	KERNELBRANCH='branch:integrate-6.15'
-	KERNELPATCHDIR='integrate-6.15'
-	EXTRAWIFI=no # due to absence of our own fixups 3rd party wifi drivers break
-}
 
 function post_family_tweaks__orangepi5ultra_naming_audios() {
 	display_alert "$BOARD" "Renaming orangepi5ultra audios" "info"
 
 	mkdir -p $SDCARD/etc/udev/rules.d/
-	echo 'SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi0-sound", ENV{SOUND_DESCRIPTION}="HDMI0 Audio"' > $SDCARD/etc/udev/rules.d/90-naming-audios.rules
-	echo 'SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi1-sound", ENV{SOUND_DESCRIPTION}="HDMI1 Audio"' >> $SDCARD/etc/udev/rules.d/90-naming-audios.rules
+	echo 'SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmi1-sound", ENV{SOUND_DESCRIPTION}="HDMI1 Audio"' > $SDCARD/etc/udev/rules.d/90-naming-audios.rules
+	echo 'SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-hdmiin-sound", ENV{SOUND_DESCRIPTION}="HDMI-In Audio"' >> $SDCARD/etc/udev/rules.d/90-naming-audios.rules
 	echo 'SUBSYSTEM=="sound", ENV{ID_PATH}=="platform-es8388-sound", ENV{SOUND_DESCRIPTION}="ES8388 Audio"' >> $SDCARD/etc/udev/rules.d/90-naming-audios.rules
 
 	return 0

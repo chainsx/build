@@ -247,12 +247,14 @@ function docker_cli_prepare_dockerfile() {
 	# initialize the extension manager; enable all extensions; only once..
 	if [[ "${docker_prepare_cli_skip_exts:-no}" != "yes" ]]; then
 		display_alert "Docker launcher" "enabling all extensions looking for Docker dependencies" "info"
-		enable_all_extensions_builtin_and_user
+		declare -i seconds_before_extensions=$SECONDS
+		enable_extensions_with_hostdeps_builtin_and_user "add_host_dependencies" "host_dependencies_known"
 		initialize_extension_manager
+		display_alert "Docker launcher" "enabled extensions in $((SECONDS - seconds_before_extensions)) seconds" "debug"
 	fi
 	declare -a -g host_dependencies=()
 
-	host_release="${DOCKER_WANTED_RELEASE}" early_prepare_host_dependencies
+	host_release="${DOCKER_WANTED_RELEASE}" early_prepare_host_dependencies # hooks: add_host_dependencies // host_dependencies_known
 	display_alert "Pre-game host dependencies for host_release '${DOCKER_WANTED_RELEASE}'" "${host_dependencies[*]}" "debug"
 
 	# This includes apt install equivalent to install_host_dependencies()
@@ -407,6 +409,13 @@ function docker_cli_prepare_launch() {
 		"--env" "GITHUB_SHA=${GITHUB_SHA}"
 		"--env" "GITHUB_WORKFLOW=${GITHUB_WORKFLOW}"
 		"--env" "GITHUB_WORKSPACE=${GITHUB_WORKSPACE}"
+
+		# Pass proxy args
+ 		"--env" "http_proxy=${http_proxy:-${HTTP_PROXY}}"
+ 		"--env" "https_proxy=${https_proxy:-${HTTPS_PROXY}}"
+ 		"--env" "HTTP_PROXY=${HTTP_PROXY}"
+		"--env" "HTTPS_PROXY=${HTTPS_PROXY}"
+		"--env" "APT_PROXY_ADDR=${APT_PROXY_ADDR}"
 	)
 
 	# This env var is used super early (in entrypoint.sh), so set it as an env to current value.
@@ -584,7 +593,7 @@ function docker_cli_launch() {
 	local -i docker_build_result
 	if docker run "${DOCKER_ARGS[@]}" "${DOCKER_ARMBIAN_INITIAL_IMAGE_TAG}" /bin/bash "${DOCKER_ARMBIAN_TARGET_PATH}/compile.sh" "${ARMBIAN_CLI_FINAL_RELAUNCH_ARGS[@]}"; then
 		docker_build_result=$? # capture exit code of test done in the line above.
-		display_alert "-------------Docker run finished after ${SECONDS}s------------------------" "🐳 successfull" "info"
+		display_alert "-------------Docker run finished after ${SECONDS}s------------------------" "🐳 successful" "info"
 	else
 		docker_build_result=$? # capture exit code of test done 4 lines above.
 		# No use polluting GHA/CI with notices about Docker failure (real failure, inside Docker, generated enough errors already) skip_ci_special="yes"

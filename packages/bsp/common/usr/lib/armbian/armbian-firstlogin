@@ -51,8 +51,6 @@ createYAML() {
    local YAML="network:\n"
     YAML+="  $DEVTYPE:\n"
     YAML+="    $DEVICE_NAME:\n"
-	if [[ "${PRESET_NET_USE_STATIC}" == 0 ]]; then		YAML+="      dhcp4: yes\n";fi
-	if [[ "${PRESET_NET_USE_STATIC}" == 0 ]]; then		YAML+="      dhcp6: yes\n";fi
 	if [[ "${PRESET_NET_USE_STATIC}" == 1 ]]; then
 		YAML+="      addresses:\n"
 		YAML+="        - $PRESET_NET_STATIC_IP/$PRESET_NET_STATIC_MASK\n"
@@ -61,6 +59,9 @@ createYAML() {
 		if [[ -n "${PRESET_NET_STATIC_GATEWAY}" ]]; then   YAML+="          via: ${PRESET_NET_STATIC_GATEWAY}\n";fi
 		if [[ -n "${PRESET_NET_STATIC_DNS}" ]]; then       YAML+="      nameservers:\n"; fi
 		if [[ -n "${PRESET_NET_STATIC_DNS}" ]]; then       YAML+="        addresses: [$PRESET_NET_STATIC_DNS]\n"; fi
+	else
+		YAML+="      dhcp4: yes\n"
+		YAML+="      dhcp6: yes\n"
 	fi
 	if [[ "${PRESET_NET_WIFI_ENABLED}" == 1 ]]; then
 		if [[ -n "${PRESET_NET_WIFI_COUNTRYCODE}" ]]; then YAML+="      regulatory-domain: $PRESET_NET_WIFI_COUNTRYCODE\n"; fi
@@ -587,7 +588,7 @@ add_user() {
 			# download and add SSH key if defined
 			if [[ -n "${PRESET_USER_KEY}" ]]; then
 				mkdir -p /home/"$RealUserName"/.ssh/
-				curl --retry 5 --connect-timeout 3 "${PRESET_ROOT_KEY}" > /home/"$RealUserName"/.ssh/authorized_keys 2> /dev/null
+				curl --retry 5 --connect-timeout 3 "${PRESET_USER_KEY}" > /home/"$RealUserName"/.ssh/authorized_keys 2> /dev/null
 				chown -R "$RealUserName":"$RealUserName" /home/"$RealUserName"/.ssh/
 			fi
 
@@ -599,7 +600,16 @@ add_user() {
 			else
 				passwd -d "$RealUserName" > /dev/null 2>&1
 			fi
-			for additionalgroup in sudo netdev audio video disk tty users games dialout plugdev input bluetooth systemd-journal ssh render; do
+
+			# Pre-create docker group to ensure user membership is set up before Docker installation.
+			# (docker-ce package creates this group automatically during postinst, but we create it early
+			# to guarantee group membership is ready immediately after user creation.)
+			if ! getent group docker >/dev/null; then
+				if ! addgroup --system docker 2>/dev/null; then
+					echo "Warning: Failed to create docker group" >&2
+				fi
+			fi
+			for additionalgroup in sudo netdev audio video disk tty users games dialout plugdev input bluetooth systemd-journal ssh render docker; do
 				usermod -aG "${additionalgroup}" "${RealUserName}" 2> /dev/null
 			done
 
@@ -687,15 +697,30 @@ if [[ -f /root/.not_logged_in_yet && -n $(tty) ]]; then
 		systemctl start systemd-networkd-wait-online
 	fi
 
-	# enable hiDPI support
-	if [[ "$(cut -d, -f1 < /sys/class/graphics/fb0/virtual_size 2> /dev/null)" -gt 1920 ]]; then
-		# lightdm
-		[[ -f /etc/lightdm/slick-greeter.conf ]] && echo "enable-hidpi = on" >> /etc/lightdm/slick-greeter.conf
-		# xfce
-		[[ -f /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml ]] && sed -i 's|<property name="WindowScalingFactor" type="int" value=".*|<property name="WindowScalingFactor" type="int" value="2">|g' /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+	# Enable HiDPI support only if the framebuffer size is detectable
+	FB_VIRTUAL_SIZE="/sys/class/graphics/fb0/virtual_size"
+	HIDPI_THRESHOLD="1920"
+	if [[ -r "$FB_VIRTUAL_SIZE" ]]; then
+		fb_virtual_width=$(cut -d, -f1 < "$FB_VIRTUAL_SIZE" 2>/dev/null)
+		if [[ "$fb_virtual_width" =~ ^[0-9]+$ && "$fb_virtual_width" -gt "${HIDPI_THRESHOLD}" ]]; then
+			# Enable HiDPI in LightDM slick-greeter
+			if [[ -f /etc/lightdm/slick-greeter.conf ]]; then
+				if ! grep -q "^enable-hidpi *= *on" /etc/lightdm/slick-greeter.conf; then
+					echo "enable-hidpi = on" >> /etc/lightdm/slick-greeter.conf
+				fi
+			fi
 
-		# framebuffer console larger font
-		setfont /usr/share/consolefonts/Uni3-TerminusBold32x16.psf.gz
+			# Set XFCE scaling factor in skeleton config
+			XFCE_XSETTINGS="/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml"
+			if [[ -f "$XFCE_XSETTINGS" ]]; then
+				sed -i 's|\(<property name="WindowScalingFactor" type="int" value="\)[^"]*\(">\)|\12\2|' "$XFCE_XSETTINGS"
+			fi
+
+			# Set a larger console font for framebuffer
+			if [[ -f /usr/share/consolefonts/Uni3-TerminusBold32x16.psf.gz ]]; then
+				setfont /usr/share/consolefonts/Uni3-TerminusBold32x16.psf.gz
+			fi
+		fi
 	fi
 
 	clear
@@ -731,9 +756,17 @@ if [[ -f /root/.not_logged_in_yet && -n $(tty) ]]; then
 			fi
 		fi
 
-		# only allow one login. Once you enter root password, kill others.
-		loginfrom=$(who am i | awk '{print $2}')
-		who -la | grep root | grep -v "$loginfrom" | awk '{print $7}' | xargs --no-run-if-empty kill -9
+		# Get current session identifiers
+		current_tty=$(tty | sed 's:/dev/::')  # e.g., "tty1"
+		current_pid=$$
+
+		# Kill ONLY other active root SHELL sessions (not login processes)
+		ps -u root -o pid,tty,comm |
+		  awk -v me="$current_tty" -v mypid="$current_pid" '
+		    NR>1 && $2 != "?" && $2 != me && $1 != mypid && $3 ~ /sh$/ {
+		      print $1
+		    }' |
+		  xargs --no-run-if-empty kill -9
 
 		# enable motd
 		chmod +x /etc/update-motd.d/*
@@ -780,12 +813,11 @@ if [[ -f /root/.not_logged_in_yet && -n $(tty) ]]; then
 		fi
 	else
 
-		echo -e "\e[0;31m\nWARNING!\x1B[0m\n\nYou are using an \e[0;31mautomated build\x1B[0m meant only for developers to provide"
-		echo -e "constructive feedback to improve build system, OS settings or UX.\n"
-
-		echo -e "If this does not apply to you, \e[0;31mSTOP NOW!\x1B[0m  Especially don't use this "
-		echo -e "image for production since things might not work as expected or at "
-		echo -e "all. They may  break anytime with next update."
+		echo -e "\e[0;31m\nDeveloper Preview Build\x1B[0m\n"
+		echo -e "This Armbian image was generated automatically for development and testing purpose."
+		echo -e "It may include unfinished features or unstable components.\n"
+		echo -e "If you are not here to report issues or just test it, \e[0;31mplease do not use this image in production.\x1B[0m"
+		echo -e "Expect things to change — or even break — as improvements are made."
 
 	fi
 
@@ -931,12 +963,15 @@ if [[ -f /root/.not_logged_in_yet && -n $(tty) ]]; then
 
 		# create default sddm config
 		mkdir -p /etc/sddm.conf.d
-		cat <<- EOF > /etc/sddm.conf.d/armbian.conf
-			[Theme]
-			Current=breeze
-			[General]
-			InputMethod=none
-		EOF
+
+		if [ ! -e "/etc/sddm.conf.d/armbian.conf" ]; then
+			cat <<- EOF > /etc/sddm.conf.d/armbian.conf
+				[Theme]
+				Current=breeze
+				[General]
+				InputMethod=none
+			EOF
+		fi
 
 		# 1st run goes without login
 		cat <<- EOF > /etc/sddm.conf.d/autologin.conf
