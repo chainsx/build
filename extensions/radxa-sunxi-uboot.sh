@@ -32,7 +32,7 @@ function post_umount_final_image__write_sunxi_uboot_to_image() {
 	fi
 
 	display_alert " Writing uboot image" "${uboot_img_path} to ${LOOP}" "info"
-	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/$BOARD/boot0_sdcard.bin" of="${LOOP}" bs=512 seek=256
-	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/$BOARD/boot0_ufs.bin" of="${LOOP}" bs=512 seek=2064
-	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/$BOARD/boot_package.fex" of="${LOOP}" bs=512 seek=24576
+	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/${BOARD:0:15}/boot0_sdcard.bin" of="${LOOP}" bs=512 seek=256
+	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/${BOARD:0:15}/boot0_ufs.bin" of="${LOOP}" bs=512 seek=2064
+	dd conv=notrunc,fsync if="${uboot_cache_dir}/usr/lib/u-boot/${BOARD:0:15}/boot_package.fex" of="${LOOP}" bs=512 seek=24576
 }
