@@ -12,4 +12,7 @@ function post_family_tweaks__ahd-a527() {
 	display_alert "Applying boot blobs"
 	cp -v "$SRC/packages/blobs/sunxi/sun55iw3-vendor/bcmdhd/brcm_patchram_plus" "$SDCARD/usr/bin/brcm_patchram_plus"
 	cp -v $SRC/packages/blobs/sunxi/sun55iw3-vendor/bcmdhd/firmware/* $SDCARD/lib/firmware
+	cp -v $SRC/packages/blobs/sunxi/sun55iw3-vendor/bcmdhd/firmware/nvram_vs2275.txt $SDCARD/lib/firmware/nvram.txt
+	
+	echo bcmdhd >> $SDCARD/etc/modules-load.d/bcmdhd.conf
 }
