@@ -1,0 +1,30 @@
+# Rockchip RK3568 quad core 2GB-8GB GBE eMMC NVMe USB3 WiFi
+BOARD_NAME="Station P2"
+BOARD_VENDOR="firefly"
+BOARDFAMILY="firefly-rk35xx"
+BOARD_MAINTAINER=""
+INTRODUCED="2020"
+BOOTCONFIG="firefly-rk356x_defconfig"
+BOOT_SOC="rk3568"
+KERNEL_TARGET="legacy"
+KERNEL_TEST_TARGET="legacy"
+FULL_DESKTOP="yes"
+BOOT_LOGO="desktop"
+BOOT_FDT_FILE="rockchip/rk3568-firefly-roc-pc-se_tf-hdmi-mipi-rk628.dtb"
+SRC_EXTLINUX="yes"
+SRC_CMDLINE="rw rootwait earlycon=uart8250,mmio32,0xfe660000 console=ttyFIQ0 coherent_pool=1m systemd.gpt_auto=0 cgroup_enable=memory swapaccount=1 swiotlb=0x10000 net.ifnames=0"
+BOOTFS_TYPE="fat"
+BOOTSIZE="256"
+ASOUND_STATE="asound.state.station-m2"
+IMAGE_PARTITION_TABLE="gpt"
+
+function post_family_tweaks__firefly() {
+	display_alert "Applying boot blobs"
+	cp -v "$SRC/packages/blobs/rk-kernel/rk-kernel.dtb" "$SDCARD/boot/rk-kernel.dtb"
+	
+	mkdir -p "$SDCARD/lib/firmware/ap6275s"
+	cp -v "$SRC/packages/blobs/bcmdhd/ap6275s/config.txt" "$SDCARD/lib/firmware/ap6275s"
+	cp -v "$SRC/packages/blobs/bcmdhd/ap6275s/nvram_ap6275s.txt" "$SDCARD/lib/firmware/ap6275s/nvram_ap6275s.txt"
+	cp -v "$SRC/packages/blobs/bcmdhd/ap6275s/clm_bcm43752a2_ag.blob" "$SDCARD/lib/firmware/ap6275s/clm_bcm43752a2_ag.blob"
+	cp -v "$SRC/packages/blobs/bcmdhd/ap6275s/fw_bcm43752a2_ag.bin" "$SDCARD/lib/firmware/ap6275s/fw_bcm43752a2_ag.bin"
+}
