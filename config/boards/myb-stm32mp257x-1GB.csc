@@ -2,7 +2,7 @@
 BOARD_NAME="MYB LD25X"
 BOARDFAMILY="stm32mp2"
 BOARD_MAINTAINER=""
-KERNEL_TARGET="legacy,vendor"
+KERNEL_TARGET="vendor"
 BOOTCONFIG="myd_ld25x_1G_defconfig"
 BOOT_FDT_FILE="st/myb-stm32mp257x-1GB.dtb"
 SRC_EXTLINUX="yes"
