@@ -5,8 +5,14 @@ BOARD_MAINTAINER=""
 KERNEL_TARGET="legacy,vendor"
 BOOT_FDT_FILE="allwinner/sun55i-a527-ahd-a527.dtb"
 SERIALCON="ttyAS0"
+BOOTCONFIG="sun55iw3_defconfig"
 SRC_EXTLINUX="yes"
 SRC_CMDLINE="earlycon=uart8250,mmio32,0x02500000 clk_ignore_unused initcall_debug=0 console=ttyAS0,115200 loglevel=8 rootwait cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1 kasan=off init=/sbin/init"
+
+function post_family_config__uboot_config() {
+	display_alert "$BOARD" "BSP U-Boot overrides for $BOARD - $BRANCH" "info"
+	UBOOT_TARGET_MAP="boot-package-a527;;boot0_sdcard.fex boot_package.fex"
+}
 
 function post_family_tweaks__ahd-a527() {
 	display_alert "Applying boot blobs"
