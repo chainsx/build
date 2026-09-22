@@ -17,6 +17,7 @@ BOOTFS_TYPE="fat"
 BOOTSIZE="256"
 ASOUND_STATE="asound.state.station-m2"
 IMAGE_PARTITION_TABLE="gpt"
+INSTALL_HEADERS="yes"
 
 function post_family_tweaks__firefly() {
 	display_alert "Applying boot blobs"
