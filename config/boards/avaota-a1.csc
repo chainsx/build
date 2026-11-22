@@ -19,4 +19,7 @@ function post_family_tweaks__avaota-a1() {
 	pushd "$SDCARD/lib/firmware"
 	ln -s "aic8800/SDIO/aic8800D80" "aic8800d80" # use armbian-firmware
 	popd
+	install -d "$SDCARD/etc/modules-load.d"
+	printf '%s\n' aic8800_fdrv > "$SDCARD/etc/modules-load.d/avaota-a1-wifi.conf"
+	printf '%s\n' lt6911c_mipi vin_v4l2 > "$SDCARD/etc/modules-load.d/avaota-a1-csi.conf"
 }
