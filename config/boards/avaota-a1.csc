@@ -22,4 +22,17 @@ function post_family_tweaks__avaota-a1() {
 	install -d "$SDCARD/etc/modules-load.d"
 	printf '%s\n' aic8800_fdrv > "$SDCARD/etc/modules-load.d/avaota-a1-wifi.conf"
 	printf '%s\n' lt6911c_mipi vin_v4l2 > "$SDCARD/etc/modules-load.d/avaota-a1-csi.conf"
+
+	local cedar_repo="https://avaotasbc.github.io/avaota-cedar-codec"
+	local cedar_key="$SDCARD/usr/share/keyrings/avaota-sun55i-cedar.gpg"
+	install -d "$SDCARD/usr/share/keyrings" "$SDCARD/etc/apt/sources.list.d"
+	curl --fail --location --retry 3 --silent --show-error \
+		"$cedar_repo/KEY.gpg" --output "$cedar_key"
+	cat > "$SDCARD/etc/apt/sources.list.d/avaota-sun55i-cedar.sources" <<EOF
+Types: deb
+URIs: $cedar_repo/debian
+Suites: ./
+Architectures: arm64
+Signed-By: /usr/share/keyrings/avaota-sun55i-cedar.gpg
+EOF
 }
